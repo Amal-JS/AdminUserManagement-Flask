@@ -1,54 +1,12 @@
 import os
-from flask import Flask , request, jsonify, url_for
+from flask import request, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS,cross_origin
+from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
-from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
-
-
-app = Flask(__name__)
-
-
-jwt = JWTManager(app)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:mysql@localhost/user_management_flask"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'your-secret-key'
-
-db = SQLAlchemy(app)
-CORS(app)
-# , origins=[ 'http://localhost:5173']
-UPLOAD_FOLDER = 'static/user_images'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
-
-def generate_uuid():
-    return str(uuid.uuid4())
-
-class User(db.Model):
-    id = db.Column(db.String(150), primary_key=True, default=generate_uuid)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(10),unique = True, nullable = False)
-    password = db.Column(db.String(150),nullable = False)
-    image = db.Column(db.String(200),default = '')
-    isSuperUser = db.Column(db.Boolean(),default=False)
-
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}')"
-    
-
-
-with app.app_context():
-    db.create_all()
-
-
-
-
-
-# Routes
+from flask_jwt_extended import  create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from app import app, db
+from app.models.user_model import User
 
 
 
@@ -115,7 +73,7 @@ def user():
                 'username':user.username,
                 'email':user.email,
                 'phone':user.phone,
-                'image':user.image
+                'image':user.image[5:]
                             })
         else:
             users = db.session.query(User).filter(User.isSuperUser == False)
@@ -168,23 +126,5 @@ def update_user():
     else:
             return jsonify({'error': 'User not found'}), 404
     
-
-@app.route('/userDelete/',methods=['DELETE'])
-def delete_user():
-    username = request.args.get('username', None)
-    print(username)
-    if not username:
-        return jsonify({'error': 'Username not provided in the  data'}), 400
-    user = db.session.query(User).filter(User.username == username).first()
-    if not user:
-        jsonify({'error': "User doesn't exist"}), 400
-
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({'userDeletionSuccessfull':True})
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 

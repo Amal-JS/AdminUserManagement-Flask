@@ -1,8 +1,8 @@
 import os
 from flask import request, jsonify, url_for
 
-from app2 import db,app
-from app2.models.user_model import User
+from app import db,app
+from app.models.user_model import User
 
 
 @app.route('/userDelete/',methods=['DELETE'])

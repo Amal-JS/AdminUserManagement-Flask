@@ -1,5 +1,5 @@
 import uuid
-from app2 import db,app
+from app import db,app
 
 def generate_uuid():
     return str(uuid.uuid4())

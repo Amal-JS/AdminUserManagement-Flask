@@ -16,7 +16,7 @@ app.config['JWT_SECRET_KEY'] = 'your-secret-key'
 db = SQLAlchemy(app)
 CORS(app)
 # , origins=[ 'http://localhost:5173']
-UPLOAD_FOLDER = 'app2/static/user_images'
+UPLOAD_FOLDER = 'app/static/user_images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
 
 
