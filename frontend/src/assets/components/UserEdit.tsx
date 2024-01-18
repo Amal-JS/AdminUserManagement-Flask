@@ -3,7 +3,7 @@ import logoImage from '../static/login_icon.png'
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import axios from 'axios';
-import {userDataUrl} from '../../configs/url'
+import {userDataUrl, userUpdateUrl} from '../../configs/url'
 import {useNavigate} from 'react-router-dom'
 
 type UserData = {
@@ -28,7 +28,7 @@ export const UserEdit = ()=>{
   const [username,setUsername] = useState('')
 
   useEffect(()=>{
-    axios.get(userDataUrl+`${params.username}/`)
+    axios.get(userDataUrl+`?username=${params.username}`)
     .then(res=>{
       
       setUser(res.data)
@@ -80,7 +80,7 @@ export const UserEdit = ()=>{
      console.log('updated Data ',updatedData)
 
 
-    axios.put(userDataUrl+`${username}/`,updatedData).then(res=>{
+    axios.put(userUpdateUrl,updatedData).then(res=>{
       console.log(res)
       if (res.data.userUpdated){
         navigate('/admin')

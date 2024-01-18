@@ -3,7 +3,7 @@ import { useEffect , useState , useRef} from "react";
 import { FaUser } from "react-icons/fa";
 import { Navigate, useNavigate } from "react-router-dom";
 import axios from 'axios';
-import {userDataUrl} from '../../configs/url'
+import {userUpdateUrl , userDataUrl} from '../../configs/url'
 import { useSelector , useDispatch } from "react-redux";
 import {  userLoggedOut} from "../../redux/reducer/userSlice";
 import { AppDispatch ,RootState } from "../../redux/store";
@@ -87,7 +87,7 @@ export const UserHome = ()=>{
   data.append('image', selectedFile as Blob);
 
    
-        axios.put(userDataUrl,data,{
+        axios.put(userUpdateUrl,data,{
             headers: {
                 "Content-Type": "multipart/form-data",
               }

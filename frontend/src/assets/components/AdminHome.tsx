@@ -4,10 +4,11 @@ import { FaUser } from "react-icons/fa";
 import CustomTable from "./Table";
 import { Navigate, useNavigate } from "react-router";
 import axios from 'axios';
-import {  userDataUrl} from "../../configs/url";
+import {  userDataUrl, userDeleteUrl} from "../../configs/url";
 import { AppDispatch, RootState } from "../../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { userLoggedOut } from "../../redux/reducer/userSlice";
+
 
 
 type UsersData = {
@@ -58,7 +59,7 @@ export const AdminHome = ()=>{
 
     const handleDelete = (username : string) : void=> {
       
-        axios.delete('http://localhost:5000/userDelete/'+`?username=${username}`)
+        axios.delete(userDeleteUrl+`?username=${username}`)
         .then(res=>{ getAllUsersData() })
         .catch(err=>console.log(err))        
 

@@ -105,9 +105,9 @@ def user_login():
 @app.route('/user/',methods=['GET'])
 def user():
     if request.method == 'GET':
-
+        
         username = request.args.get('username', '')  # Retrieve the username from the URL parameters
-
+        print('username :',username)
         if  username:
             
             user = db.session.query(User).filter(User.username == username).first()
@@ -123,39 +123,51 @@ def user():
             return jsonify(list_of_users)
     
 
-@app.route('/user/', methods=['PUT'])
+@app.route('/userUpdate/', methods=['PUT'])
 def update_user():
-    username = request.form.get('username', '')
-    image_file = request.files.get('image')
-
+    print(request.form)
+    username = request.form.get('username', None)
+    image_file = request.files.get('image',None)
+    
     if not username:
         return jsonify({'error': 'Username not provided in the form data'}), 400
 
-    if not image_file:
-        return jsonify({'error': 'Image file not provided in the form data'}), 400
-
-    # Generate a unique filename using username and UUID
-    filename = f"{username}_{uuid.uuid4().hex}.png"
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-    # Save the image file to the specified folder
-    image_file.save(file_path)
-
     # Update the user's image path in the database
     user = db.session.query(User).filter(User.username == username).first()
-
+    print(username,request.form.get('email', ''),user,'3    ')
     if user:
-        user.image = f"/{app.config['UPLOAD_FOLDER']}/{filename}"
-        db.session.commit()
 
-        return jsonify({
-            'msg': 'User image updated successfully',
-            'image_url': url_for('static', filename=user.image)
-        })
+         if username and image_file:
+        
+            # Generate a unique filename using username and UUID
+            filename = f"{username}_{uuid.uuid4().hex}.png"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            # Save the image file to the specified folder
+            image_file.save(file_path)
+            user.image = f"/{app.config['UPLOAD_FOLDER']}/{filename}"
+            db.session.commit()
+
+            return jsonify({
+                    'msg': 'User image updated successfully',
+                    'image_url': url_for('static', filename=user.image)
+                })
+         
+         else:
+            user.username = request.form.get('username', user.username)
+            user.email = request.form.get('email', user.email)
+            user.phone = request.form.get('phone', user.phone)
+            password = request.form.get('password',None)
+            if password :
+                 user.password = generate_password_hash(password,method='pbkdf2:sha256')
+            
+            db.session.commit()
+            return jsonify({'userUpdated':True})
+             
+            
     else:
-        return jsonify({'error': 'User not found'}), 404
+            return jsonify({'error': 'User not found'}), 404
     
-
 
 @app.route('/userDelete/',methods=['DELETE'])
 def delete_user():
