@@ -1,35 +1,39 @@
 import os
 from flask import Flask , request, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from flask_cors import CORS,cross_origin
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 
 app = Flask(__name__)
-CORS(app)
+
+
 jwt = JWTManager(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:mysql@localhost/user_management_flask"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'your-secret-key'
 
 db = SQLAlchemy(app)
-
-
+CORS(app)
+# , origins=[ 'http://localhost:5173']
 UPLOAD_FOLDER = 'static/user_images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 
+def generate_uuid():
+    return str(uuid.uuid4())
 
 class User(db.Model):
-    id = db.Column(db.String(36), primary_key=True, default=str(uuid.uuid4()), unique=True, nullable=False)
+    id = db.Column(db.String(150), primary_key=True, default=generate_uuid)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(10),unique = True, nullable = False)
     password = db.Column(db.String(150),nullable = False)
-    image = db.Column(db.String(200),unique = True, default = '')
+    image = db.Column(db.String(200),default = '')
     isSuperUser = db.Column(db.Boolean(),default=False)
 
     def __repr__(self):
@@ -45,9 +49,7 @@ with app.app_context():
 
 
 # Routes
-@app.route('/')
-def index():
-    return 'Hello, this is your Flask app!'
+
 
 
 # User signup route
@@ -89,7 +91,8 @@ def user_login():
                     'msg': 'Login Successful',
                     'username': user.username,
                     'access': access_token,
-                    'refresh': refresh_token
+                    'refresh': refresh_token,
+                    'isSuperUser':user.isSuperUser
                 })
             else:
                 return jsonify({'msg': 'Invalid Credentials'})
@@ -102,18 +105,22 @@ def user_login():
 @app.route('/user/',methods=['GET'])
 def user():
     if request.method == 'GET':
+
         username = request.args.get('username', '')  # Retrieve the username from the URL parameters
 
-        if not username:
-            return jsonify({'error': 'Username not provided in the URL parameters'}), 400
-
-        user = db.session.query(User).filter(User.username == username).first()
-        return jsonify({
-            'username':user.username,
-            'email':user.email,
-            'phone':user.phone,
-            'image':user.image
-                        })
+        if  username:
+            
+            user = db.session.query(User).filter(User.username == username).first()
+            return jsonify({
+                'username':user.username,
+                'email':user.email,
+                'phone':user.phone,
+                'image':user.image
+                            })
+        else:
+            users = db.session.query(User).filter(User.isSuperUser == False)
+            list_of_users = [{'username':user.username,'email':user.email,'phone':user.phone} for user in users ]
+            return jsonify(list_of_users)
     
 
 @app.route('/user/', methods=['PUT'])
@@ -147,6 +154,25 @@ def update_user():
         })
     else:
         return jsonify({'error': 'User not found'}), 404
+    
+
+
+@app.route('/userDelete/',methods=['DELETE'])
+def delete_user():
+    username = request.args.get('username', None)
+    print(username)
+    if not username:
+        return jsonify({'error': 'Username not provided in the  data'}), 400
+    user = db.session.query(User).filter(User.username == username).first()
+    if not user:
+        jsonify({'error': "User doesn't exist"}), 400
+
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'userDeletionSuccessfull':True})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+

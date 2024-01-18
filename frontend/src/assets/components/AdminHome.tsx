@@ -46,7 +46,7 @@ export const AdminHome = ()=>{
 
     const getAllUsersData = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/allUsers/');
+            const response = await axios.get(userDataUrl);
             console.log(response.data)
             setUsers(response.data);
             setFilteredUsers(response.data);
@@ -58,7 +58,7 @@ export const AdminHome = ()=>{
 
     const handleDelete = (username : string) : void=> {
       
-        axios.delete(userDataUrl+`${username}`)
+        axios.delete('http://localhost:5000/userDelete/'+`?username=${username}`)
         .then(res=>{ getAllUsersData() })
         .catch(err=>console.log(err))        
 
